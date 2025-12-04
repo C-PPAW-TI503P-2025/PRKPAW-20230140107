@@ -6,7 +6,7 @@ const { authenticateToken } = require('../middleware/permissionMiddleware');
 
 router.use(authenticateToken);
 
-router.post('/check-in', presensiController.CheckIn);
+router.post('/check-in', presensiController.upload.single('image'), presensiController.CheckIn);
 router.post('/check-out', presensiController.CheckOut);
 
 router.put('/:id', [

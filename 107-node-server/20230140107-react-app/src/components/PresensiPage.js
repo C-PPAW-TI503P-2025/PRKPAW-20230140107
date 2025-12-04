@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
+import Webcam from 'react-webcam';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+
 
 // Fix default icon paths for leaflet (required when using webpack/create-react-app)
 delete L.Icon.Default.prototype._getIconUrl;
@@ -22,6 +24,12 @@ function PresensiPage() {
   const [coords, setCoords] = useState(null); // { lat, lng }
   const [manualLat, setManualLat] = useState('');
   const [manualLng, setManualLng] = useState('');
+  const [image, setImage] = useState(null);
+  const webcamRef = useRef(null);
+  const capture = useCallback(() => {
+    const imageSrc = webcamRef.current.getScreenshot();
+    setImage(imageSrc);
+  }, [webcamRef]);
 
   // Fungsi untuk mendapatkan lokasi pengguna
   const getLocation = () => {
@@ -66,24 +74,28 @@ function PresensiPage() {
     setError('');
     setMessage('');
     try {
-      const config = {
-        headers: {
-          Authorization: `Bearer ${getToken()}`,
-        },
-      };
-      if (!coords) {
-        setError('Lokasi belum didapatkan. Mohon izinkan akses lokasi.');
+      if (!coords || !image) {
+        setError('Lokasi dan Foto wajib ada!');
         return;
       }
 
-      const response = await axios.post(
-        '/api/presensi/check-in',
-        {
-          latitude: coords.lat,
-          longitude: coords.lng,
+      // Convert dataURL to blob
+      const blob = await (await fetch(image)).blob();
+
+      // Create FormData and append fields
+      const formData = new FormData();
+      formData.append('latitude', coords.lat);
+      formData.append('longitude', coords.lng);
+      formData.append('image', blob, 'selfie.jpg');
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${getToken()}`,
+          // Let browser set Content-Type for multipart/form-data with boundary
         },
-        config
-      );
+      };
+
+      const response = await axios.post('/api/presensi/check-in', formData, config);
       setMessage(response.data.message || 'Check-in berhasil');
     } catch (err) {
       setError(err.response ? (err.response.data.message || JSON.stringify(err.response.data)) : 'Check-in gagal');
@@ -173,6 +185,32 @@ function PresensiPage() {
             </button>
           </div>
         )}
+
+        {/* Tampilan Kamera */}
+        <div className="my-4 border rounded-lg overflow-hidden bg-black">
+          {image ? (
+            <img src={image} alt="Selfie" className="w-full" />
+          ) : (
+            <Webcam
+              audio={false}
+              ref={webcamRef}
+              screenshotFormat="image/jpeg"
+              className="w-full"
+            />
+          )}
+        </div>
+
+        <div className="mb-4">
+          {!image ? (
+            <button onClick={capture} className="bg-blue-500 text-white px-4 py-2 rounded w-full">
+              Ambil Foto 📸
+            </button>
+          ) : (
+            <button onClick={() => setImage(null)} className="bg-gray-500 text-white px-4 py-2 rounded w-full">
+              Foto Ulang 🔄
+            </button>
+          )}
+        </div>
 
         {/* Tombol Check-in & Check-out */}
         <div className="flex space-x-4">

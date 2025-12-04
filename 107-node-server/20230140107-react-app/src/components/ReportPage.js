@@ -9,6 +9,14 @@ function ReportPage() {
   const [tanggalMulai, setTanggalMulai] = useState('');
   const [tanggalSelesai, setTanggalSelesai] = useState('');
   const navigate = useNavigate();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalImage, setModalImage] = useState(null);
+
+  const getPhotoUrl = (buktiFoto) => {
+    if (!buktiFoto) return null;
+    if (buktiFoto.startsWith('http')) return buktiFoto;
+    return buktiFoto.startsWith('/') ? buktiFoto : `/${buktiFoto}`;
+  };
 
   const fetchReports = async (queryName = '') => {
     const token = localStorage.getItem('token');
@@ -81,10 +89,11 @@ function ReportPage() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check-In</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check-Out</th>
-              </tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check-In</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Check-Out</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bukti Foto</th>
+                </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {reports.length > 0 ? (
@@ -93,15 +102,45 @@ function ReportPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{presensi.user ? presensi.user.nama : 'N/A'}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(presensi.checkIn).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{presensi.checkOut ? new Date(presensi.checkOut).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) : 'Belum Check-Out'}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {presensi.buktiFoto ? (
+                        (() => {
+                          const src = getPhotoUrl(presensi.buktiFoto);
+                          return (
+                            <img
+                              src={src}
+                              alt={`Bukti ${presensi.id}`}
+                              className="w-16 h-16 object-cover rounded cursor-pointer border"
+                              onClick={() => { setModalImage(src); setModalOpen(true); }}
+                            />
+                          );
+                        })()
+                      ) : (
+                        <span className="text-gray-400">—</span>
+                      )}
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="3" className="px-6 py-4 text-center text-gray-500">Tidak ada data yang ditemukan.</td>
+                  <td colSpan="4" className="px-6 py-4 text-center text-gray-500">Tidak ada data yang ditemukan.</td>
                 </tr>
               )}
             </tbody>
           </table>
+        </div>
+      )}
+      {/* Image modal */}
+      {modalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60" onClick={() => setModalOpen(false)}>
+          <div className="bg-white rounded shadow-lg max-w-4xl max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="p-2 text-right">
+              <button onClick={() => setModalOpen(false)} className="px-3 py-1 bg-red-600 text-white rounded">Tutup</button>
+            </div>
+            <div className="p-4">
+              <img src={modalImage} alt="Full size" className="max-w-full max-h-[80vh] mx-auto" />
+            </div>
+          </div>
         </div>
       )}
     </div>
