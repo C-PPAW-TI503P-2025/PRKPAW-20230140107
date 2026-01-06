@@ -29,6 +29,7 @@ function Navbar() {
           <div className="flex items-center space-x-4">
             <Link to="/" className="text-xl font-semibold text-indigo-600">MyClass</Link>
             <Link to="/dashboard" className="text-sm text-gray-600 hover:text-gray-800">Dashboard</Link>
+            <Link to="/monitoring" className="text-sm text-gray-600 hover:text-gray-800">Monitoring Suhu</Link>
             <Link to="/presensi" className="text-sm text-gray-600 hover:text-gray-800">Presensi</Link>
             {user && user.role === 'admin' && (
               <Link to="/reports" className="text-sm text-gray-600 hover:text-gray-800">Laporan Admin</Link>

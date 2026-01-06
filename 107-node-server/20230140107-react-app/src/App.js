@@ -6,6 +6,7 @@ import DashboardPage from './components/DashboardPage';
 import Navbar from './components/Navbar';
 import PresensiPage from './components/PresensiPage';
 import ReportPage from './components/ReportPage';
+import SensorPage from './components/SensorPage';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/presensi" element={<PresensiPage />} />
           <Route path="/reports" element={<ReportPage />} />
           <Route path="/" element={<LoginPage />} />
+          <Route path="/monitoring" element={<SensorPage />} />
         </Routes>
       </div>
     </Router>
